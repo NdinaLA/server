@@ -7,18 +7,22 @@ const app = express();
 const mysql = require('mysql');
 const router = require('./middleware/meta.routes');
 const port = 5005;
+const bcrypt = require('bcrypt');
+const fs = require('fs');
+const userDb = './db/users.json';
 
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: process.env.DATABASE_PASS,
-  database: 'ndina'
+  database: 'ndina',
 });
 
 // Connect
-db.connect(err => {
+db.connect((err) => {
   if (err) {
-    throw err;
+    // throw err;
+    // console.log(err.message);
   }
   console.log('MySql Connected');
 });
@@ -103,4 +107,60 @@ app.use('/', router);
 
 app.listen(port, () => {
   console.log('Server is listening on port ', port);
+});
+
+//@route get api/signUp
+//@desc sign up user
+//@access public
+
+app.post('/signUp', async (request, response) => {
+  const { name, email, password } = request.body;
+  const initdb = await fs.readFileSync(userDb);
+  const user = await JSON.parse(initdb);
+
+  try {
+    if (user.some((userData) => userData.email == email)) {
+      return response.send('email already in use');
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedpassword = await bcrypt.hash(password, salt);
+
+    const newUserData = [
+      ...user,
+      { name: name, email: email, password: hashedpassword },
+    ];
+
+    const data = JSON.stringify(newUserData, null, 2);
+    fs.writeFile(userDb, data, (err) => {
+      if (err) throw err;
+      console.log('Data written to file');
+    });
+    response.send('user created');
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+//@route get api/login
+//@desc log in user
+//@access public
+
+app.get('/login', async (request, response) => {
+  const { email, password } = request.body;
+  const initdb = await fs.readFileSync(userDb);
+  const parsed = await JSON.parse(initdb);
+
+  const user = await parsed.find((user) => user.email === email);
+  if (user == null) {
+    return response.status(400).send('Cannot find user');
+  }
+  try {
+    if (await bcrypt.compare(password, user.password)) {
+      response.send('success user logged in');
+    } else {
+      response.send('not authenticated');
+    }
+  } catch (err) {
+    console.error(err.message);
+  }
 });
