@@ -1,40 +1,6 @@
 [
   {
-    "name": "Jeffrey2",
-    "email": "email2@email.com",
-    "password": "$2b$10$oNN1Lm5svqZLpLrvSmB1DOkHRR18q9MgSF3/yW5enYl4xaF.Z/Zm."
-  },
-  {
-    "name": "Jeffrey2",
-    "email": "email@email.com",
-    "password": "$2b$10$ZBY668ZSkxxkZMibgsHEPOdZ09xNNUAZPsX/5cGIca893aKzMK9TK"
-  },
-  {
-    "name": "Jeffrey2",
-    "email": "email3@email.com",
-    "password": "$2b$10$RMyk3o8jrd0qtDpL34sQ8etO4B.d0yDzHA3eeCHebjw3xEBIClK3e"
-  },
-  {
-    "name": "jeff",
-    "email": "jeff@gmail.com",
-    "password": "$2b$04$lUPRnVLL9DMhl1JNKKt.iumWLpCLDjj.4BHEFNoi5fD3i61sRxjQO"
-  },
-  {
-    "name": "emily",
-    "email": "emily@gmail.com",
-    "password": "$2b$04$9eFexq7QRahkaZiOnrw.o.Wsrtp9iZcvWBBDeAK8EPFqcUeIl71LC"
-  },
-  {
-    "name": "test",
-    "email": "email@emailcom",
-    "password": "$2b$04$2XlgdnH/pRUV3ptNNSsb6.a977.JgULT/nbgySwZzsWdlMU3WgyMW"
-  },
-  {
-    "name": "test",
-    "email": "email@emai.lcom",
-    "password": "$2b$04$3x/LnjE1piLKEZb.utfnueTOcT4AmRuKuW2OP2h5gHKTeyglG695K"
-  },
-  {
+    "id": "1",
     "name": "jeffrey",
     "email": "jeffrey@email.com",
     "password": "$2b$04$sfOvIcufx/SxS66mMZKg3OvvTgTpYJPvdRccdowL.5DAXAnmUmmP."

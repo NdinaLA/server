@@ -116,13 +116,14 @@ app.listen(port, () => {
 //@access private
 
 app.get('/loadUser', auth, async (request, response) => {
-  const { email } = request.body;
+  const { email } = request.user;
   const initdb = await fs.readFileSync(userDb);
   const user = await JSON.parse(initdb);
 
   try {
-    const user = await user.find((userEmail) => userEmail.email == email);
-    response.json(user);
+    const userData = await user.find((userEmail) => userEmail.email == email);
+    delete userData.password;
+    response.json(userData);
   } catch (error) {
     console.error(error.message);
     response.status(500).send('Server Error');
@@ -163,10 +164,15 @@ app.post('/signUp', async (request, response) => {
         },
       };
 
-      jwt.sign(payload, 'secret', (err, token) => {
-        if (err) throw err;
-        response.json({ token });
-      });
+      jwt.sign(
+        payload,
+        config.get('JWT_SECRET'),
+        { expiresIn: 900 },
+        (err, token) => {
+          if (err) throw err;
+          response.json({ token });
+        }
+      );
     }
   } catch (error) {
     console.error(error.message);
@@ -200,10 +206,15 @@ app.post('/login', async (request, response) => {
       },
     };
 
-    jwt.sign(payload, 'secret', (err, token) => {
-      if (err) throw err;
-      response.json({ token });
-    });
+    jwt.sign(
+      payload,
+      config.get('JWT_SECRET'),
+      { expiresIn: 900 },
+      (err, token) => {
+        if (err) throw err;
+        response.json({ token });
+      }
+    );
   } catch (err) {
     console.error(err.message);
   }
