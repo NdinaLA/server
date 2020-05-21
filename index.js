@@ -166,7 +166,7 @@ app.post('/signUp', async (request, response) => {
 
       jwt.sign(
         payload,
-        config.get('JWT_SECRET'),
+        process.env.JWT_SECRET,
         { expiresIn: 900 },
         (err, token) => {
           if (err) throw err;
@@ -208,7 +208,7 @@ app.post('/login', async (request, response) => {
 
     jwt.sign(
       payload,
-      config.get('JWT_SECRET'),
+      process.env.JWT_SECRET,
       { expiresIn: 900 },
       (err, token) => {
         if (err) throw err;
