@@ -7,18 +7,24 @@ const app = express();
 const mysql = require('mysql');
 const router = require('./middleware/meta.routes');
 const port = 5005;
+const bcrypt = require('bcrypt');
+const fs = require('fs');
+const userDb = './db/users.json';
+const jwt = require('jsonwebtoken');
+const auth = require('./middleware/auth');
 
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: process.env.DATABASE_PASS,
-  database: 'ndina'
+  database: 'ndina',
 });
 
 // Connect
-db.connect(err => {
+db.connect((err) => {
   if (err) {
-    throw err;
+    // throw err;
+    // console.log(err.message);
   }
   console.log('MySql Connected');
 });
@@ -103,4 +109,113 @@ app.use('/', router);
 
 app.listen(port, () => {
   console.log('Server is listening on port ', port);
+});
+
+//@route get /loadUser
+//@desc get token for user
+//@access private
+
+app.get('/loadUser', auth, async (request, response) => {
+  const { email } = request.user;
+  const initdb = await fs.readFileSync(userDb);
+  const user = await JSON.parse(initdb);
+
+  try {
+    const userData = await user.find((userEmail) => userEmail.email == email);
+    delete userData.password;
+    response.json(userData);
+  } catch (error) {
+    console.error(error.message);
+    response.status(500).send('Server Error');
+  }
+});
+
+//@route post /signUp
+//@desc sign up user
+//@access public
+
+app.post('/signUp', async (request, response) => {
+  const { name, email, password } = request.body;
+  const initdb = await fs.readFileSync(userDb);
+  const user = await JSON.parse(initdb);
+
+  try {
+    if (user.some((userData) => userData.email == email)) {
+      return response.status(409).json({ msg: 'email already in use' });
+    } else {
+      const salt = await bcrypt.genSalt(2);
+      const hashedpassword = await bcrypt.hash(password, salt);
+
+      const newUserData = [
+        ...user,
+        { name: name, email: email, password: hashedpassword },
+      ];
+
+      const data = JSON.stringify(newUserData, null, 2);
+      fs.writeFile(userDb, data, (err) => {
+        if (err) throw err;
+        console.log('Data written to file');
+      });
+
+      //payload can be set to user id once made
+      const payload = {
+        user: {
+          email: user.email,
+        },
+      };
+
+      jwt.sign(
+        payload,
+        process.env.JWT_SECRET,
+        { expiresIn: 900 },
+        (err, token) => {
+          if (err) throw err;
+          response.json({ token });
+        }
+      );
+    }
+  } catch (error) {
+    console.error(error.message);
+  }
+});
+
+//@route post /login
+//@desc log in user and get token
+//@access public
+
+app.post('/login', async (request, response) => {
+  try {
+    const { email, password } = request.body;
+    const initdb = await fs.readFileSync(userDb);
+    const parsed = await JSON.parse(initdb);
+    const user = await parsed.find((user) => user.email === email);
+
+    if (user == null) {
+      return response.status(400).json({ msg: 'Cannot find user' });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return response.status(400).json({ msg: 'invalid credentials' });
+    }
+
+    //payload can be set to user id once made
+    const payload = {
+      user: {
+        email: user.email,
+      },
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: 900 },
+      (err, token) => {
+        if (err) throw err;
+        response.json({ token });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+  }
 });
